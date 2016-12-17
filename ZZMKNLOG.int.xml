@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Routine name="ZZMKNLOG" type="INT" languagemode="0"><![CDATA[
+ZZMKNLOG ;ALB/MKN;Logging Routine
+ ;ddd
+ zb XUP^XUP:"N"::"D XUP^ZZMKNLOG"
+ Q
+XUP ;
+ W ! ZW IO
+ Q
+]]></Routine>
+</Export>
