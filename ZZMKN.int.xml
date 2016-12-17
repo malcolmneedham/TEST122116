@@ -1,0 +1,1447 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25">
+<Routine name="ZZMKN" type="INT" languagemode="0"><![CDATA[
+ZZMKN    ;Malcolm Needham - Snippets
+         ;;2.0;INTEGRATED BILLING;**527**;21-MAR-94;Build 1
+         ;;Per VA Directive 6402, this routine should not be modified.
+         ;
+CLONEINS ;Clone an Insurance Company . . . testing 12/17/16
+         D INIT
+         K RET D CLONEINS^IBVPRPC1(.RET,"SESSIONID",486,351) ZW RET
+         Q
+         ;
+CLONEGRP ;
+         D INIT
+         K RET D CLONEGRP^IBVPRPC1(.RET,"SESSIONID",461,351) ZW RET
+         Q
+         ;
+GETGRPS  ;
+         D INIT
+         D GETGRPS^IBVPRPC1(.RET,"ABCDEF",461,"","")
+         ZW @RET
+         Q
+         ;
+COVTYPE  ;
+         D INIT
+         D COVTYPE^IBVPRPC1(.RET,"SESSIONID") ZW RET
+         Q
+         D SRCHSTOP^IBVPVR6(.OUT,11)
+         ZW OUT
+         Q
+TESTCWFN ;
+         D INIT
+         S X="MNEEDHAM",ACCESS=$$UP^XLFSTR($$MAIN^XUMF5BYT($$HEX^XUMF5AU($$MD5R^XUMF5AU(X))))
+         S X="Verify@123",VERIFY=$$UP^XLFSTR($$MAIN^XUMF5BYT($$HEX^XUMF5AU($$MD5R^XUMF5AU(X))))
+         D ACCESS^CWAPPRPC(.RET,ACCESS,VERIFY)
+         ZW @RET
+         Q
+TESTCWRP ;
+         D INIT
+         ; CWREQDAT("RPC HANDLER VERSION")=server version
+         ; CWREQDAT("ENV")=client's environment 
+         ; CWREQDAT("DUZ")=DUZ (IEN of the file #200)
+         ; CWRPCCAL("RPC NAME")=RPC name
+         ; CWRPCCAL("RPC CONTEXT"):
+         ; - encrypt the menu option by using $$ENCRYP^XUSRB1
+         ; - the menu option must be assign to the user with CWREQDAT("DUZ") in file #200 as secondary or primary menu
+         ; - the RPC CWREQDAT("RPC NAME") must be listed in this menu option's RPC list
+         ; CWRPCCAL("PARAMS")=subarray of parameters for RPC
+         ;S PARAM(1,"ACC")="SH"
+         ;S PARAM(2,"VER")="ZZZ"
+         S CWREQDAT("RPC HANDLER VERSION")=9.9
+         S CWREQDAT("ENV")=".net"
+         S CWREQDAT("DUZ")=27843
+         S CWRPCCAL("RPC NAME")="CW FIND USER"
+         S CWRPCCAL("RPC CONTEXT")="CWEB CACHE CONNECTOR CONTEXT"
+         S CWRPCCAL("PARAMS",1,"SEARCH")="ABB"
+         ;
+         S X=$$RUN^CWRPC(.RET,.CWREQDAT,.CWRPCCAL)
+         ZW @RET
+         Q
+TESTHSH  ;
+         D INIT
+         W $$EN^XUSHSH("Verify@123")
+         Q
+DELRPC   ;Delete all IBVP RPCs prior to build
+         D INIT
+         S RPC="IBVP",DIK="^XWB(8994," F  S RPC=$O(^XWB(8994,"B",RPC)) Q:$E(RPC,1,4)'="IBVP"  D
+         . W !,RPC
+         . S DA=$O(^XWB(8994,"B",RPC,"")) I DA D ^DIK
+         Q
+STARTVL  ;
+         D INIT
+         D START^XOBVTCP(8000)
+         Q
+DELINS   ;
+         D INIT
+         S IEN36=486,IEN3553=""
+         D DELINS^IBVPRPC1(.RET,"SESSIONID",IEN36,IEN3553)
+         ZW RET
+         Q
+         ;
+         D INIT
+         K RET D GETIMGLS^IBVPRPC1(.RET,"SESSIONID",7172743) ZW RET
+         Q
+         
+         W $$CHKINSGR^IBVPAPT(7172747)
+         Q
+         D INIT
+         D ACCEPAPI^IBCNICB(.RESULT,350,7172747,0,0,0,2,2,2,1,1,1,"",1)
+         ZW RESULT
+         Q
+DEL312   ;
+         D INIT
+         S DIK="^DPT(7172747,.312,",DA(1)=7172747 F DA=2,3 D ^DIK
+         S DIK="^IBA(355.3," F DA=461:1:463 D ^DIK
+         S DIK="^IBA(355.33," F DA=350:1:359 D ^DIK
+         S DIK="^IBA(355.32,",DA=252 D ^DIK
+         S DIK="^IBA(355.4," F DA=44:1:45 D ^DIK
+         S DIK="^DIC(36," F DA=486:1:488 D ^DIK
+         D ^IBCNSCD1
+         D SVIVP
+         D SAVEIVP(.RES,"SESSIONID")
+         I $P($G(RES(0)),U)=-1 ZW RES Q
+         ;D ACCEPT
+         Q
+SAVEFILT ;
+         D INIT
+         S FILTERS(0)="DR^01/01/2016^12/31/2016"
+         S FILTERS(1)="ROW^patientName^EQ^IVP Test^A"
+         S FILTERS(2)="ROW^eivStatus^EQ^$^A"
+         S FILTERS(3)="ROW^division^EQ^500"
+         D SAVEFILT^IBVPRPC1(.RET,"SESSIONID",.FILTERS)
+         W !,RET
+         Q
+GETFILT  ;
+         D INIT
+         D GETFILT^IBVPRPC1(.RET,"SESSIONID")
+         ZW RET
+         Q
+EXTRA    ;
+         D INIT
+         D EXTRA^IBVPACC1(.RET,351,7172747)
+         ZW RET
+         Q
+         ;
+SAVEIVP(RET,SESSION) ;
+         D INIT
+         ;
+         ;36
+         S FLDARR(0)="ienins^N"
+         S FLDARR(1)="insuranceCompany^MALCOLMS TEST 01/22/2016"
+         S FLDARR(2)="insSynonym^synonym line 1"  ;multiple
+         S FLDARR(3)="insSynonym^synonym line 2"  ;multiple
+         S FLDARR(4)="subscriberId^mkn1234"
+         S FLDARR(5)="insRemarks^This is a word processing field This is a word processing field This is a word processing field This is a word processing field This is a word processing field This is a word processing field This is a word processing field This is a word processing field This is a word processing field This is a word processing field This is a word processing field This is a word processing field This is a word processing field "
+         S FLDARR(6)="insInsuranceStandardFtf^1"
+         S FLDARR(7)="insInsuranceStandardFtfValue^10"
+         S FLDARR(8)="insTypeOfCoverage^9"
+         S FLDARR(9)="state^1"
+         S FLDARR(10)="whoseInsurance^v"
+         S FLDARR(11)="policyEffectiveDate^01/01/2016"
+         S FLDARR(12)="insElectricInsuranceType^1"
+         S FLDARR(13)="benefitsAssignable^1"
+         S FLDARR(14)="phoneNumber^505-555-1212"
+         S FLDARR(15)="billingPhoneNumber^505-555-1213"
+         S FLDARR(16)="precertificationPhoneNumber^505-555-1214"
+         S FLDARR(17)="addressLine1^1234 4TH STREET"
+         S FLDARR(18)="addressLine2^Bldg A"
+         S FLDARR(19)="addressLine3^Suite 3"
+         S FLDARR(20)="city^TUCKER"
+         S FLDARR(21)="state^21"
+         S FLDARR(22)="zip^30084"
+         S FLDARR(23)="reimburse^Y"
+         S FLDARR(24)="utilizationReviewRequired^0"
+         S FLDARR(25)="ambulatoryCareCertification^0"
+         S FLDARR(26)="precertificationRequired^0"
+         S FLDARR(27)="excludePreexistingCondition^0"
+         S FLDARR(28)="benefitsAssignable^1"
+         S FLDARR(29)="relationshipToInsured^02"
+         S FLDARR(30)="insuredsDob^06/29/1949"
+         S FLDARR(31)="insuredsSsn^1231234p"
+         S FLDARR(32)="insuredsSex^M"
+         S FLDARR(33)="coordinationOfBenefits^1"
+         S FLDARR(34)="patientId^abcpatid"
+         S CT=34
+         ;
+         ;355.3
+         S CT=CT+1,FLDARR(CT)="iengrp^N"
+         S CT=CT+1,FLDARR(CT)="groupName^AETNAMOON"
+         S CT=CT+1,FLDARR(CT)="typeOfPlan^1"
+         S CT=CT+1,FLDARR(CT)="groupPolicyComments^These are group policy comments"
+         S CT=CT+1,FLDARR(CT)="groupActiveInactive^0"
+         ;
+         ;2.312
+         S CT=CT+1,FLDARR(CT)="ienpol^N"
+         S CT=CT+1,FLDARR(CT)="polPatientPolicyComments^these are comments"
+         S CT=CT+1,FLDARR(CT)="polPolicyBillable^1"
+         ;
+         ;355.4
+         S CT=CT+1,FLDARR(CT)="ienann^N"
+         S CT=CT+1,FLDARR(CT)="annBenefitYearBeginningOn^01/01/2017"
+         S CT=CT+1,FLDARR(CT)="annMaximumOutOfPocket^123"
+         ;
+         ;355.32
+         S CT=CT+1,FLDARR(CT)="iencov^N"
+         S CT=CT+1,FLDARR(CT)="covCoverageEffectiveDate^01/01/2017"
+         S CT=CT+1,FLDARR(CT)="covCoverageStatus^1"
+         S CT=CT+1,FLDARR(CT)="covCoverageCategory^6"
+         ;
+         K RET D SAVEIVP^IBVPVR13(.RET,"ABCDEF",350,.FLDARR) ZW RET
+         ZW RET
+         Q
+         ;
+GETELPTY ;
+         D INIT
+         D GETELPTY^IBVPRPC1(.RET,"SESSIONID")
+         ZW RET
+         Q
+         ;
+ACCEPT   ;
+         D INIT
+         S IEN35533=350,FLDARR(0)="INSIEN^0",FLDARR(1)="GRPLIEN^0",FLDARR(2)="POLIEN^0"
+         S FLDARR(3)="INSUPD^Y",FLDARR(4)="GRPLUPD^Y",FLDARR(5)="POLUPD^Y"
+         S FLDARR(6)="MORNIINS^2",FLDARR(7)="MORNIGRP^2",FLDARR(8)="MORNIPOL^2" ;2=OVERWRITE
+         S APPTDATI="02/26/2016 8:00 AM",USERROLE=6
+         K RET D ACCEPT^IBVPRPC1(.RET,"SESSIONID",IEN35533,671,APPTDATI,USERROLE,.FLDARR) ZW RET
+         Q
+         ;
+REJECT   ;
+         D INIT
+         S IVPARR(0)=351
+         S APPTDATI="02/04/2016 8:00 AM",USERROLE=6
+         K RET D REJECT^IBVPRPC1(.RET,"SESSIONID",.IVPARR,671,APPTDATI,USERROLE) ZW RET
+         Q
+         ;
+ESCALATE ;
+         D INIT
+         K RET D ESCALATE^IBVPRPC1(.RET,"SESSIONID",351,671,"02/04/2016 8:00AM",6) ZW RET
+         Q
+SRCHINS  ;
+         D INIT
+         S INSNA="TR",GRPNA="TR",GRPNUM=""
+         D SRCHINS^IBVPRPC1(.RET,"ABCDEF",INSNA,GRPNA,GRPNUM)
+         W ! ZW @RET
+         Q
+         ;
+         D INIT
+         D GETMETA^IBVPRPC(.RET,350)
+         ZW RET
+         Q
+         ;
+GETEIV   ;
+         D INIT
+         K RET D GETEIV^IBVPRPC1(.RET,"SESSIONID",321)
+         S N="" F  S N=$O(@RET@(N)) Q:N=""  W !,"RET("_N_")="_@RET@(N)
+         Q
+         ;
+COMPARE  ;
+         D INIT
+         S DFN=7172747,IEN2312=1,IEN35533=350,IEN36=486,IEN3553=461
+         K RET D COMPARE^IBVPRPC1(.RET,"SESSIONID",DFN,IEN35533,IEN2312,IEN36,IEN3553) ZW RET
+         Q
+         D INIT
+         S ^IBA(377.15,497,"IVP",2,0)=358_"^1"
+         Q
+         D FIND^DIC(377.15,,"@;.01;.02","O","IVPTEST,EIGHT",,,,,"OUT")
+         ZW OUT
+         Q
+         S DA=487,DIE="^IBA(377.15,",DR=".02///3151218.0800"
+         D ^DIE
+         Q
+         F I=356:1:493 D
+         . I '$D(^IBA(377.15,I)) W !,I," NOT FOUND" Q
+         . S X=^IBA(377.15,I,0) W !," ",X I $P(X,U,2)?1"3151214".E ZW ^IBA(377.15,I) R !,"? ",Q
+         Q
+         D INIT 
+         D GETIVPD2^IBVPVR4(.RET,355)
+         ZW RET
+         Q
+         D INIT
+         S DFN=3,IVP=355
+         D FINDP312^IBVPVR3(.RET,DFN,IVP)
+         ZW RET
+         Q
+GETMETA  ;
+         D INIT
+         K RET D GETMETA^IBVPRPC1(.RET,"SESSIONID",358) ZW RET
+         Q
+PTINSEXT ;
+         D INIT
+         S DFN=7172747,IVPDA=350
+         K RET D PTINSEXT^IBVPRPC1(.RET,"SESSIONID",7172747,350) ZW RET
+         Q
+PTINSPAR ;
+         D INIT
+         S DFN=7172747,IVPDA=350
+         K RET D PTINSPAR^IBVPRPC1(.RET,"SESSIONID",7172747,350) ZW RET
+         Q
+USE312   ;
+         D INIT
+         S DFN=3,P312=2
+         D USE312^IBVPIVP(DFN,P312)
+         Q
+         D INIT
+         D GETIVPD2^IBVPRPC(.RET,350)
+         ZW RET
+         Q
+GETSTATE ;
+         D INIT
+         D GETSTATE^IBVPRPC1(.RET,"SESSIONID")
+         ZW RET
+         Q
+         ;
+UP35532  ;
+         D INIT
+         K ERR,FDA S FDA(355.32,"+1,",.01)=8,FDA(355.32,"+1,",.02)=3
+         S FDA(355.32,"+1,",.03)=3151002.13,FDA(355.32,"+1,",.04)=1
+         S FDA(355.32,"+1,",1.01)=3151113.14,FDA(355.32,"+1,",1.02)=1234567236
+         D UPDATE^DIE("S","FDA","FDAO","ERR")
+         
+         Q
+         S U="^"
+         K ARR S N=0 F  S N=$O(^DD(355.4,N)) Q:'N  S X=^(N,0),FLD=$P(X,U) D
+         . S FLD=$TR(FLD,"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz")
+         . S FLD2="" F I=1:1 S WORD=$P(FLD," ",I) Q:WORD=""  D
+         . . S FLD2=FLD2_$TR($E(WORD),"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")_$E(WORD,2,$L(WORD))
+         . W !," ;;",N,";",FLD2
+         Q
+GETPTIN1 ;
+         D INIT
+         S DFN=3,P312=2
+         D GETPTIN1^IBVPRPC(.RET,DFN,P312)
+         ZW RET
+         ;W !! S N="" F  S N=$O(RET(N)) Q:N=""  W !," ;;"_$P(RET(N),U)_";"
+         Q
+         ;
+GETPTIN2 ;
+         D INIT
+         S DFN=3,P312=2
+         D GETPTIN2^IBVPRPC(.RET,DFN,P312)
+         ZW RET
+         ;W !! S N="" F  S N=$O(RET(N)) Q:N=""  W !," ;;"_$P(RET(N),U)_";"
+         Q
+         ;
+FNDANNB  ;
+         D INIT
+         S DFN=7172747,P312=2
+         D FNDANNB^IBVPRPC(.RET,"SESSIONID",DFN,P312)
+         ZW RET
+         Q
+         ;
+GETANNB  ;
+         D INIT
+         D GETANNB^IBVPRPC(.RET,"SESSIONID",9)
+         ZW RET
+         ;W !! S N="" F  S N=$O(RET(N)) Q:N=""  W !," ;;"_$P(RET(N),U)_";"
+         Q
+         ;
+FNDCOVL  ;
+         D INIT
+         S DFN=3,P312=2
+         D FNDCOVL^IBVPRPC(.RET,"SESSIONID",DFN,P312)
+         ZW RET
+         ;W !! S N="" F  S N=$O(RET(N)) Q:N=""  W !," ;;"_$P(RET(N),U)_";"
+         Q
+         ;
+GETCOVL  ;
+         D INIT
+         D GETCOVL^IBVPRPC(.RET,"SESSIONID",245)
+         ZW RET
+         Q
+         ;
+GETTYPPL ;
+         D INIT
+         D GETTYPPL^IBVPRPC1(.RET,"SESSIONID")
+         ZW RET
+         Q
+         ;
+GETCOVC  ;
+         D INIT
+         D GETCOVC^IBVPRPC1(.RET,"SESSIONID")
+         ZW RET
+         Q
+         ;
+GETREL   ;
+         D INIT
+         D GETREL^IBVPRPC1(.RET,"SESSIONID")
+         ZW RET
+         Q
+         ;
+GETWHOSE ;
+         D INIT
+         D GETWHOSE^IBVPRPC1(.RET,"SESSIONID")
+         ZW RET
+         Q
+         ;
+GETBILL  ;
+         D INIT
+         D GETBILL^IBVPRPC1(.RET,"SESSIONID")
+         ZW RET
+         Q
+         ;
+GETCOORD ;
+         D INIT
+         D GETCOORD^IBVPRPC1(.RET,"SESSIONID")
+         ZW RET
+         Q
+         ;TF ;
+         D INIT
+         D GETSTFTF^IBVPRPC1(.RET,"SESSIONID")
+         ZW RET
+         Q
+         ;
+GETPLCAT ;
+         D INIT
+         D GETPLCAT^IBVPRPC1(.RET,"SESSIONID")
+         ZW RET
+         Q
+         ;
+GETREIMB ;
+         D INIT
+         D GETREIMB^IBVPRPC1(.RET,"SESSIONID")
+         ZW RET
+         Q
+         ;
+GETMETH  ;
+         D INIT
+         D GETMETH^IBVPRPC1(.RET,"SESSIONID")
+         ZW RET
+         Q
+         ;
+GETREJMS ;
+         D INIT
+         D GETREJMS^IBVPRPC1(.RET,"SESSIONID")
+         ZW RET
+         Q
+         ;
+GETPTIN5 ;
+         D INIT
+         S DFN=3,IVPDA=350
+         D GETPTIN5^IBVPRPC(.RET,"SESSIONID",DFN,IVPDA)
+         ZW RET
+         Q
+         ;
+FNDINSRV ;
+         D INIT
+         K RET D FNDINSRV^IBVPRPC(.RET,"SESSIONID",3,2) ZW RET
+         ZW RET
+         Q
+         ;
+GETINSRV ;
+         D INIT
+         K RET D GETINSRV^IBVPRPC(.RET,"SESSIONID",328) ZW RET
+         Q
+         ;
+GETIVPD1 ;
+         D INIT
+         D GETIVPD1^IBVPRPC1(.RET,"ABCDEF",350)
+         ZW RET
+         Q
+         ;
+GETIVPD2 ;
+         D INIT
+         D GETIVPD2^IBVPRPC1(.RET,"ABCDEF",350)
+         ZW RET
+         Q
+         ;
+IVPLIST  ;Verifiers list from file #355.33
+         D INIT
+         K FILTERS
+         ;S FILTERS(0)="PatName^R^IVPTESTCCC,E^IVPTESTCCC,E^A"
+         S FILTERS(0)="patientName^B^ZZ^^"
+         ;S FILTERS(0)="PatName^NE^IVPTESTCCC,NINE^^A"
+         ;S FILTERS(0)="insuranceCompanyName^B^CIG^^"
+         ;S FILTERS(0)="insuranceCompanyName^B^MALC^^"
+         ;S FILTERS(0)="Division^NE^ALBANY^^^"
+         K RET D IVPLIST^IBVPRPC(.RET,"ABCDEF","02/22/2010","05/06/2016",.FILTERS)
+         W ! ZW @RET
+         Q
+         ;
+FINDGRPN ;
+         D INIT
+         K RET D FNDGRPNM^IBVPRPC1(.RET,"SESSION","GRP1234") ZW @RET
+         Q
+         ;
+FINDUSER ;
+         D INIT
+         K RET D FINDUSER^IBVPRPC(.RET,"NE") ZW RET
+         S N="" F  S N=$O(@RET@(N)) Q:N=""  W !,"ARRAY("_N_")=",@RET@(N)
+         Q
+         ;
+CHKCLIN  ;
+         D INIT
+         D SETPPNV^IBVPAPT("671;672;673",DT)
+         Q
+         ;
+GETCLINS ;
+         D INIT
+         D GETCLINS^IBVPREP1(.OUT)
+         S N="" F  S N=$O(OUT(N)) Q:N=""  W !,"ARRAY("_N_")=",OUT(N)
+         Q
+         ;
+GETINTUS ;
+         D INIT
+         K RET D GETINTUS^IBVPRPC(.RET) ZW RET
+         Q
+         ;
+GETROLES ;
+         D INIT
+         K RET D GETROLES^IBVPRPC(.RET) ZW RET
+         S N="" F  S N=$O(OUT(N)) Q:N=""  W !,"ARRAY("_N_")=",OUT(N)
+         Q
+         ;
+GRPPPNVS ;
+         D INIT
+         K RET D GRPPPNVS^IBVPRPC1(.RET,"SESSIONID",486,"","") ZW @RET
+         Q
+GETOSD   ;
+         D INIT
+         D GETOSD^IBVPOSD(.RET)
+         W ! ZW RET
+         Q
+         ;
+RESETIVP ;
+         D INIT
+         D RESETIVP^IBVPLOG(.RET,7172753)
+         W ! ZW RET
+         Q
+         ;
+SHOWLOG  ;
+         D SHOWLOG^IBVPLOG(.RET,"08/28/2015","08/28/2015","H")
+         W ! ZW RET
+         Q
+         ;
+PURGHIST ;
+         D INIT
+         D PURGE^IBVPHIST(.RET,3150826,10)
+         W !,RET," records purged"
+         Q
+         ;
+SRCHCLNJ(RET,SEARCH) ;
+         ;
+         ;This API is called by RPC "IBVP SEARCH FOR CLINICS" and returns the IEN and name of
+         ;any clinics where the name contains the value in parameter SEARCH
+         ;
+         ;Output is an array in this format:
+         ;  RET(#)=IEN^Clinic name
+         ;
+         S JSON=0
+SRCH     ;
+         N CT,N,OUT
+         I SEARCH="" S RET(0)="-1^No search criteria entered - please try again" Q
+         D LIST^DIC(44,"",".01","","201","","","","I $P(^(0),U)["_$C(34)_SEARCH_$C(34),"","OUT")
+         I '$D(OUT("DILIST",1,1)) S RET(0)="-1^No matching clinics found" Q
+         I $D(OUT("DILIST",1,201)) S RET(0)="-1^Over 200 results found - please refine your search" Q
+         S RET(0)=$$JSON()
+         Q
+         ;
+JSON()   ;
+         N C,J
+         S C=$C(34),J="{ "_C_"userId"_C_": "_C_$$GET1^DIQ(200,DUZ_",",.01)_C_", "_C_"sessionId"_C_": "_C_"10000001"_C
+         S J=J_", "_C_"clinics"_C_": ["
+         S N=0 F  S N=$O(OUT("DILIST",1,N)) Q:'N  S J=J_"{ "_C_"clinicId"_C_": "_C_$G(OUT("DILIST",2,N))_C D
+         . S J=J_", "_C_"clinicName"_C_": "_C_OUT("DILIST",1,N)_C_"}"_$S($O(OUT("DILIST",1,N))?1.N:",",1:"")
+         S J=J_"]}"
+         Q J
+         ;
+GETLINES ;
+         D INIT
+         S DIR(0)="S^C:IVPENTCR;P:IVPENTPR;A:DAILYAPPT;NC:INSNOTCAP",DIR("B")="Which report" D ^DIR Q:Y=-1
+         K OUT D GETREPL^IBVPRPC(.OUT,"SessionID",$S(Y="C":"IVPENTCR",Y="A":"DAILYAPPT",Y="NC":"INSNOTCAP",1:"IVPENTPR"),0,999)
+         S N="" F  S N=$O(@OUT@(N)) Q:N=""  W !,"ARRAY("_N_")=",@OUT@(N)
+         Q
+         ;
+SETREP1  ;Daily Appointments Report
+         D INIT
+         S X=$P($$NOW^XLFDT(),"."),TDA=$$FMTE^XLFDT(X,"5PZ")
+         K CLINS ;S CLINS(0)=671,CLINS(1)=672,CLINS(2)=673
+         K OUT D SETREP1^IBVPRPC(.OUT,"SESSIONID",TDA,TDA,.CLINS)
+         S N="" F  S N=$O(@OUT@(N)) Q:N=""  W !,"ARRAY("_N_")="_@OUT@(N)
+         Q
+         ;
+SETREP2  ;IVP Entries Created report
+         D INIT
+         S X=$P($$NOW^XLFDT(),"."),TDA=$$FMTE^XLFDT(X,"5PZ")
+         S ARRAY(0)=6,TDA="02/22/2016"
+         ;D SETREP2^IBVPRPC(.OUT,"SessionID",TDA,TDA,"A",.ARRAY)
+         D SETREP2^IBVPRPC(.OUT,"SessionID",TDA,TDA,"R",.ARRAY)
+         S N="" F  S N=$O(@OUT@(N)) Q:N=""  W !,"ARRAY("_N_")="_@OUT@(N)
+         Q
+         ;
+SETREP3  ;IVP Entries Processed report
+         D INIT
+         ;NOTE: Make sure there is at least one entry in history file with "AC" or "RJ"
+         ;S $P(^IBA(377.15,225,"IVP",1,"ACT",1,0),U,3)="AC"
+         ;SEE SVMAKEAC BELOW
+         ;
+         K OUT S X=$P($$NOW^XLFDT(),"."),TDA=$$FMTE^XLFDT(X,"5PZ")
+         D SETREP3^IBVPRPC(.OUT,"SessionID",TDA,TDA)
+         S N="" F  S N=$O(@OUT@(N)) Q:N=""  W !!,"ARRAY("_N_")="_@OUT@(N) ;D
+         . S X=@OUT@(N) W ! F I=1:1:$L(X,"^") W !,I,?5,$P(X,U,I)
+         Q
+         ;
+SETREP4  ;Not Captured report
+         D INIT
+         S X=$P($$NOW^XLFDT(),"."),TDA=$$FMTE^XLFDT(X,"5PZ") K CLINS
+         ;S CLINS(1)=671,CLINS(2)=672,CLINS(3)=673
+         D SETREP4^IBVPRPC(.OUT,"SessionID",TDA,TDA,.CLINS)
+         S N="" F  S N=$O(@OUT@(N)) Q:N=""  W !,"ARRAY("_N_")="_@OUT@(N)
+         Q
+         ;
+SETREP5  ;Productivity report
+         ;SET(RET,SESSIONID,DATEFR,DATETO,CLINICS,USERS)
+         D INIT
+         S X=$P($$NOW^XLFDT(),"."),TDA=$$FMTE^XLFDT(X,"5PZ")
+         K INARR S INPTYPE="C",INARR(0)=671,INARR(1)=672,INARR(2)=673
+         ;S INPTYPE="U" S INARR(0)=123457236,INARR(1)=123457240
+         K OUT D SETREP5^IBVPRPC(.OUT,"SESSIONID",TDA,TDA,INPTYPE,.INARR)
+         S N="" F  S N=$O(@OUT@(N)) Q:N=""  W !,"ARRAY("_N_")="_@OUT@(N)
+         Q
+         I INPTYPE="C" S N="" F  S N=$O(@OUT@(N)) Q:N=""  S X=@OUT@(N) D
+         . W ! F I=1:1:$L(X,"^") D
+         . . w !,$p("Clinic/DAW/#Entered/%Entered/No Ins/%No Ins/#Refused/%Refused/#Scanned/%Scanned/#Not Entered/%Not Entered/","/",I)
+         . . w ?15,$P(X,U,I)
+         I INPTYPE="U" S N="" F  S N=$O(@OUT@(N)) Q:N=""  S X=@OUT@(N) D
+         . W ! F I=1:1:$L(X,"^") D
+         . . w !,$p("User/#Entered/#Scanned/%Scanned/No Ins/%No Ins/#Refused/%Refused/","/",I)
+         . . w ?15,$P(X,U,I)
+         Q
+         ;
+SETREP6  ;IVP Entries Rejected report
+         D INIT
+         S X=$P($$NOW^XLFDT(),"."),TDA=$$FMTE^XLFDT(X,"5PZ")
+         D SETREP6^IBVPRPC(.OUT,"SESSIONID",TDA,TDA)
+         S N="" F  S N=$O(@OUT@(N)) Q:N=""  W !,"ARRAY("_N_")="_@OUT@(N)
+         Q
+         ;
+         D INIT
+         W $$PATSTAT^IBVPIVP(7171035)
+         Q
+         ;
+STRTNATR ;
+         D INIT
+         ;D GETDAW ;RUN THIS TO SET UP HISTORY FILE FOR "TODAY'S" APPOINTMENTS
+         S SESSION="ABCDEF"
+         D STRTNATR^IBVPNR1(.RET,SESSION)
+         ZW RET
+         ;S SESSION="ABCDEF",DATE=3151207 D RUN^IBVPNR1
+         ;S BUFF=$NA(^XTMP("IBVPNR1"_SESSION))
+         ;ZW @BUFF
+         Q
+         ;
+STRTNATB ;
+         D INIT
+         ;D GETDAW ;RUN THIS TO SET UP HISTORY FILE FOR "TODAY'S" APPOINTMENTS
+         S SESSION="ABCDEF",DATE=3160203 D RUN^IBVPNR1
+         S BUFF=$NA(^XTMP("IBVPNR1"_SESSION))
+         ZW @BUFF
+         Q
+         ;
+POLLNATR ;
+         D INIT
+         S SESSION="ABCDEF"
+         D POLLNATR^IBVPRPC(.RET,SESSION)
+         ZW RET
+         Q
+TESTGRPC ;
+         D INIT
+         D GETPARMS(.RET,"IBVP PATIENT INFO SUMMARY")
+         ZW RET
+         Q
+         ;
+GETRPCDT(OUT,RPC) ;This RPC is for the SwingingRPCs utility
+         D INIT
+         S IEN=$O(^XWB(8994,"B",RPC,"")) I 'IEN S OUT="-1^RPC: "_RPC_" not found" Q
+         S CRLF=$C(13,10),OUT=RPC_CRLF_CRLF_"Description of RPC:"_CRLF
+         S N=0 F  S N=$O(^XWB(8994,IEN,1,N)) Q:'N  S OUT=OUT_" "_^(N,0)_CRLF
+         S OUT=OUT_CRLF_"Properties:"_CRLF
+         K FLDS D GETS^DIQ(8994,IEN_",",".01;.02;.03;.04;.05;.06;.07;.08;.09;.1;.11","IE","FLDS")
+         S C=0 F I=.01:.01:.09,1,.11 S Y=$G(FLDS(8994,IEN_",",I,"E")) D
+         . S OUT=OUT_$E($J(" ",10),1,10-$L(I))_I_" "
+         . S C=C+1,FLD=$P("Name/Tag/Routine/Return Type/Availability/Inactive/Client Manager/Word Wrap/Version/Suppress../App Proxy Allowed/","/",C)
+         . S OUT=OUT_FLD_$E($J(" ",20),1,20-$L(FLD))_Y_CRLF
+         S OUT=OUT_CRLF_"Parameters:"_CRLF_"        #   Name       Type       Length  Required?"_CRLF
+         S SEQ="" F  S SEQ=$O(^XWB(8994,IEN,2,"PARAMSEQ",SEQ)) Q:SEQ=""  S IENPARM=$O(^XWB(8994,IEN,2,"PARAMSEQ",SEQ,"")) D
+         . S X=^XWB(8994,IEN,2,IENPARM,0),PARM=$P(X,U),TYPE=$P(X,U,2)
+         . S TYPE=$S(TYPE=1:"Literal",TYPE=2:"Array",TYPE=3:"Global Array",1:"WP")
+         . S LGTH=$P(X,U,3),REQ=$S($P(X,U,4):"*",1:" ")
+         . S OUT=OUT_$J(" ",8)_SEQ_$E($J(" ",4),1,4-$L(SEQ))_PARM_$E($J(" ",11),1,11-$L(PARM))_TYPE
+         . S OUT=OUT_$E($J(" ",11),1,11-$L(TYPE))_LGTH_$E($J(" ",8),1,8-$L(LGTH))_$S(REQ="*":"Yes",1:"No")_CRLF
+         S OUT=OUT_CRLF_"Return Parameter:"_CRLF
+         S N=0 F  S N=$O(^XWB(8994,IEN,3,N)) Q:'N  S OUT=OUT_" "_^(N,0)_CRLF
+         Q
+         ;
+GETINSCO ;
+         D INIT
+         D GETPARMS(.OUT,"IBVP GET INS COMPANY DETAILS")
+         W ! ZW OUT
+         Q
+         ;
+GETPARMS(OUT,RPC) ;
+         N CT,IEN,IENPARM,REQ,SEQ,X
+         S CT=0,IEN=$O(^XWB(8994,"B",RPC,"")) I 'IEN S OUT(0)="RPC "_RPC_" not found" Q
+         S SEQ="" F  S SEQ=$O(^XWB(8994,IEN,2,"PARAMSEQ",SEQ)) Q:SEQ=""  S IENPARM=$O(^XWB(8994,IEN,2,"PARAMSEQ",SEQ,"")) D
+         . S X=^XWB(8994,IEN,2,IENPARM,0),TYPE=$P(X,U,2),REQ=$S($P(X,U,4):"*",1:" ")
+         . S X=$P(X,U)_"~"_TYPE_"~"_$P(X,U,3)_"~"_REQ_"~"
+         . S OUT(CT)=X,CT=CT+1
+         Q
+         ;
+RPCS     ;
+         D INIT
+         D FINDRPCS(.OUT,"IBVP")
+         W ! ZW OUT
+         Q
+         ;
+FINDRPCS(RET,SEARCH) ; -- RPC: ZZMKN FIND RPCS cloned from XOBV TEST RPC LIST
+         ;This is used by the SwingingRPCs utility
+         ;
+         ;-- List all RPC's starting with same string (i.e. namespace)
+         ;
+         ; Input:
+         ; SEARCH - string to look up (ex. "IBVP" will look up all RPCs starting with IBVP)
+         ;
+         ; Output:
+         ; RET - output array, passed by reference, defined as:
+         ; RET(0) contains either error message or header line
+         ; RET(1-n) contains data line
+         ;
+         N CT,N,RPC,TNAME,X
+         K ^TMP("ZZMKN FIND RPCS",$J)
+         S TNAME="ZZMKN FIND RPCS",SEARCH=$$UP(SEARCH)
+         D LIST^DIC(8994,"","","","","",$E(SEARCH,1,$L(SEARCH)-1),"","","","")
+         S (CT,N)=0 F  S N=$O(^TMP("DILIST",$J,1,N)) Q:'N  S X=^(N),^TMP(TNAME,$J,X)=""
+         S SU=$$UP^XLFSTR(SEARCH)
+         D LIST^DIC(8994,"","","","",SU,SU,"","","","")
+         S N=0 F  S N=$O(^TMP("DILIST",$J,1,N)) Q:'N  S X=^(N),^TMP(TNAME,$J,X)=""
+         S RPC="" F  S RPC=$O(^TMP(TNAME,$J,RPC)) Q:RPC=""  S CT=CT+1,RET(CT)=RPC
+         S RET(0)="RPCs Starting with '"_SEARCH_"'..."_" ("_+^TMP("DILIST",$J,0)_") entries found."
+         K ^TMP("DILIST",$J),^TMP("DIERR",$J),^TMP(TNAME,$J)
+         Q
+         ;
+SRCHCLIN ;
+         D INIT
+         D SRCHCLIN^IBVPRPC(.RET,"DD")
+         S N="" F  S N=$O(RET(N)) Q:N=""  W !,"ARRAY("_N_")="_RET(N)
+         Q
+         ;
+GET3786  ;
+         D INIT
+         S STR="",N=.01,CT=0 F  S N=$O(^DD(378.6,N)) Q:'N!(CT>299)  D
+         . S X=$P(^(N,0),U)
+         . S STR=STR_"curl -k -v -H 'Content-Type: application/json' -X POST --data '{""Master Standard Parameters"": "
+         . S STR=STR_"{"_$C(34)_"VistA Field Number"_$c(34)_":"_$c(34)_N_$C(34)_", "
+         . S STR=STR_$C(34)_"GUI Label"_$C(34)_":"_$c(34)_X_$C(34)_", "
+         . S STR=STR_$C(34)_"GUI Field Name"_$C(34)_":"_$c(34)_X_$C(34)_", "
+         . S STR=STR_$C(34)_"VLER Field Name"_$C(34)_":"_$c(34)_X_$C(34)_", "
+         . S STR=STR_$C(34)_"Updated By"_$C(34)_":"_$C(34)_"123457236"_$C(34)_", "
+         . S STR=STR_$C(34)_"Updated On"_$C(34)_":"_$C(34)_"3150506"_$C(34)_"}}'"
+         . S STR=STR_" 'https://bhiedevappch3.vaco.va.gov:8443/ecrud/v1/ivp/IVP.DataDictionaries'"
+         . S STR=STR_$C(13,10),CT=CT+1
+         W !!,STR
+         Q
+CHKFLDS  ;
+         D INIT
+         S FLDARR(1)="IEN36^1",FLDARR(2)="DFN^7172743",FLDARR(3)="IEN35533^350"
+         S FLDARR(4)="IEN3553^1"
+         D ACCEPT^IBVPACC1(.RET,.FLDARR)
+         W ! ZW RET W ! ZW FLDS
+         Q
+SAVEMETA ;
+         D INIT
+         S X=^IBA(377.9,0),$P(X,U,3)=0,$P(X,U,4)=0 K ^IBA(377.9) S ^IBA(377.9,0)=X
+         S DFN=7172754,DATE="Dec 14,2015@08",INSTYPE=1,ID="ABCDNEWFRNTID",IEN35533=358
+         K RET D SAVEMETA^IBVPRPC(.RET,"SESSIONID",DFN,DATE,INSTYPE,IEN35533,ID) ZW RET
+         Q
+         ;
+         D INIT
+         D PURGEAUD^IBVPRPC(.RET,350)
+         W !,RET
+         Q
+         D INIT
+         F FLD=.01,.02 D
+         . D GETAUD^IBVPRPC(.RET,350,FLD)
+         . W !,$S(RET:"Yes",1:"No"),", field #"_FLD_" was ",$S('RET:"not",1:"")," updated"
+         Q
+         D INIT
+         ;S X=^IBA(377.17,0),$P(X,U,3)=0,$P(X,U,4)=0 K ^IBA(377.17) S ^IBA(377.17,0)=X
+         S DATE="APR 27,2015@1333"
+         D SETAUD^IBVPRPC(.OUT,350,DATE,.02,DUZ)
+         W ! ZW OUT
+         Q
+         ;
+GETCPAC  ;Get CPAC list from file #378.5
+         D INIT
+         D GETCPAC^IBVPRPC(.OUT)
+         W ! ZW OUT
+         Q
+         ;
+SETSTDP  ;
+         D INIT
+         S FLD(0)="ppnvDays^100"
+         K RET D SETSTDP^IBVPRPC(.RET,.FLD) ZW RET
+         Q
+         ;
+SRCHSTOP ;
+         D INIT
+         K RET D SRCHSTOP^IBVPRPC1(.RET,"SESSIONID",11) ZW RET
+         Q
+         ;
+GETSTDP  ;
+         D INIT
+         D GETSTDP^IBVPRPC(.RET)
+         W ! ZW RET
+         Q
+         ;
+GETHIST  ;
+         D GETHIST^IBVPHIST(.RET,"DAW","A","4/1/2015","12/31/2015")
+         W ! ZW @RET
+         Q
+         ;
+TESTIMGS ;
+         D INIT
+         S FLDARR(1)="DFN^7172743"
+         D SAVEIMG^IBVPIMG(.RET,"VA4$:[ANONYMOUS.ANONYMOUS]ZZMKN1.KID",.FLDARR)
+         W ! ZW RET
+         Q
+         ;
+         
+TESTFTD  ;
+         S OBJ=##class(IVP.FileTransfer).%New()
+         d OBJ.DownloadBinary()
+         q
+         ;
+TESTFTU  ;
+         S OBJI=##class(IVP.ImageStore).%New()
+         D OBJI.ImageIn.LinkToFile("c:\Temp\ImageSaveTest.jpg")
+         F  Q:OBJI.ImageIn.AtEnd>0  S X=OBJI.ImageIn.Read(1000) D OBJI.ImageOut.Write(X)
+         S OBJ=##class(IVP.FileTransfer).%New()
+         D OBJ.Attachments.SetAt(OBJI.ImageOut,1)
+         S X=OBJ.UploadBinary()
+         Q
+         ;
+SV3778   ;
+         D INIT
+         K ERR,FDA S FDA(377.8,"+1,",.01)=327,FDA(377.8,"+1,",.02)="3150212.1000",FDA(377.8,"+1,",.03)=7172743
+         S FDA(377.8,"+1,",.04)=0,FDA(377.8,"+1,",.05)=0,FDA(377.8,"+1,",.06)="3150212.0900"
+         S FDA(377.8,"+1,",.07)=123457236,FDA(377.8,"+1,",1.01)="3150212.1200",FDA(377.8,"+1,",1.02)=123457236
+         D UPDATE^DIE("S","FDA","FDAO","ERR")
+         Q
+         ;
+FNDIMAGE ;
+         D INIT
+         D FNDIMAGE^IBVPRPC(.RET,7172743)
+         W ! ZW RET
+         Q
+         ;
+         D INIT
+         S DFN=7172743,(DSIVVER,DSIVVERM,DSIVVERN)=9999,DSIVDT=3150206
+         W $$INS^DSIVIC1(DFN,DSIVVER,DSIVVERM,DSIVVERN,DSIVDT)
+         Q
+         ;
+GETAPPT  ;
+         D INIT
+         S APPTFM=3150409.15
+         K SDARRAY S SDARRAY(1)=$P(APPTFM,".")_";"_APPTFM
+         S SDARRAY(2)=674
+         S SDARRAY(3)="CP;CPR;CC;CCR;NT;NS;NSR;R;"
+         S SDARRAY("FLDS")="30;31"
+         S SDRESULT=$$SDAPI^SDAMA301(.SDARRAY)
+         W ! ZW ^TMP($J,"SDAMA301")
+         Q
+         ;
+SETPPNV  ;
+         D INIT
+         S CLINICS="671;672;673"
+         D SETPPNV^IBVPAPT(.CLINICS,DT)
+         Q
+         ;
+GETDAW   ;
+         D INIT
+         S IBVPFILT=1 ;0=Show All  1=Filtered (do not show if an IVP entry exists for this patient)
+         S IEN11=1
+         D GETDAW^IBVPRPC(.RET,"SessionID",IEN11,IBVPFILT)
+         D SETPPNV
+         W ! ZW RET
+         Q
+         ;
+TESTJSON ;
+         ;RESULT(1)="7172754;ZZTESTPATIENT,IVPEIGHT^309110859P^11/08/1959^671;IVP TEST CLINIC 1^1;ALBANY^03/25/2015 8:00 am^^^"
+         ;
+         D GETDAW
+         K JSONARR S CT=0
+         S IEN=$O(^IBE(378.1,"B","dlyapptrpt","")) I IEN="" W !,"dlyapptrpt not found in file #378.1" Q
+         S N=0 F  S N=$O(RESULT(N)) Q:'N  S X=RESULT(N) D
+         . ;Now build a string that matches entries in file #378.1
+         . S STR=$P(X,U,6)_U_$P($P(X,U,4),";",2)_U_$P($P(X,U),";",2)
+         . I N=1 S HDR=1,ROWNUM=1 D SETHDR,PRTCOLS
+         . S HDR=0,ROWNUM=N+1 D SETHDR,PRTCOLS
+         W ! ZW JSONARR
+         Q
+         ;
+SETHDR   ;
+         S JSON="{ reportid: "_$C(34)_"dlyapptrpt"_$C(34)_", datecr: "_$C(34)_"3150325"_$C(34)_", "
+         S JSON=JSON_"rownum: "_ROWNUM_", columns: [ "
+         Q
+         ;
+PRTCOLS  ;
+         F COL=1:1:3 D
+         . S IENCOL=$O(^IBE(378.1,IEN,"JSON","C",COL,""))
+         . S Y=^IBE(378.1,IEN,"JSON",IENCOL,0),COLNAME=$P(Y,U),COLHDR=$P(Y,U,2),DATA=$P(STR,U,COL)
+         . S JSON=JSON_"{ columnnum: "_COL_", "
+         . S JSON=JSON_"columnname: "_$C(34)_COLNAME_$C(34)_", "
+         . I HDR=1 S JSON=JSON_"columndata: "_$C(34)_COLHDR_$C(34)_" }"_$S(COL<3:", ",1:"")
+         . I HDR=0 S JSON=JSON_"columndata: "_$C(34)_$P(STR,U,COL)_$C(34)_" }"_$S(COL<3:", ",1:"")
+         S JSON=JSON_" ] }"
+         S CT=CT+1,JSONARR(CT)=JSON
+         Q
+         ;
+TESTJSN2 ;
+         ;RESULT(1)="7172754;ZZTESTPATIENT,IVPEIGHT^309110859P^11/08/1959^671;IVP TEST CLINIC 1^1;ALBANY^03/25/2015 8:00 am^^^"
+         ;
+         D GETDAW
+         K JSONARR S CT=0
+         S IEN=$O(^IBE(378.1,"B","dlyapptrpt","")) I IEN="" W !,"dlyapptrpt not found in file #378.1" Q
+         S N=0 F  S N=$O(RESULT(N)) Q:'N  S X=RESULT(N) D
+         . ;Now build a string that matches entries in file #378.1
+         . S STR=$P(X,U,6)_U_$P($P(X,U,4),";",2)_U_$P($P(X,U),";",2)
+         . F COL=1:1:3 D
+         . . S IENCOL=$O(^IBE(378.1,IEN,"JSON","C",COL,""))
+         . . S Y=^IBE(378.1,IEN,"JSON",IENCOL,0),COLNAME=$P(Y,U),COLHDR=$P(Y,U,2),DATA=$P(STR,U,COL)
+         . . S JSON="{ reportid: "_$C(34)_"dlyapptrpt"_$C(34)
+         . . S JSON=JSON_", datecr: "_$C(34)_"3150325"_$C(34)
+         . . S JSON=JSON_", rownum: "_N_", "
+         . . S JSON=JSON_"columnnum: "_COL_", "
+         . . S JSON=JSON_"columnhdr: "_$C(34)_COLHDR_$C(34)_", "
+         . . S JSON=JSON_"columnname: "_$C(34)_COLNAME_$C(34)_", "
+         . . S JSON=JSON_"columndata: "_$C(34)_$P(STR,U,COL)_$C(34)
+         . . S JSON=JSON_" }"
+         . . S CT=CT+1,JSONARR(CT)=JSON
+         W ! ZW JSONARR
+         Q
+         ;
+IMPINS   ;
+         D INIT
+         S X=^IBA(377.5,0),($P(X,U,3),$P(X,U,4))=0 K ^IBA(377.5) S ^IBA(377.5,0)=X
+         S X=^IBE(378.5,0),($P(X,U,3),$P(X,U,4))=0 K ^IBE(378.5) S ^IBE(378.5,0)=X
+         D OPEN^%ZISH("INS","VA4$:[ANONYMOUS.ANONYMOUS]","INSCODROPDOWN.txt","R")
+         F  U IO R X Q:$$STATUS^%ZISH()  D
+         . U 0 W !,X S X=$$TRIM^XLFSTR(X,"R"," ")
+         . K ERR,FDA S FDA(377.5,"+1,",.01)=X,FDA(377.5,"+1,",.02)=DT,FDA(378.5,"+4,",.01)=X,FDA(378.5,"+4,",.02)=DT
+         . D UPDATE^DIE("S","FDA",,"ERR")
+         D CLOSE^%ZISH("INS")
+         Q
+         ;
+GETGRPLS ;
+         D INIT
+         K RET D GETGRPLS^IBVPRPC(.RET,"P") ZW @RET
+         Q
+         ;
+GETGRPDT ;
+         D INIT
+         K RET D GETGRPDT^IBVPRPC(.RET,44,".01;.03;.04;.05;.09;1.01;") ZW RET
+         Q
+         ;
+         D INIT
+         S RET=$$CHKINS^IBVPIVP(7)
+         W !!,"Patient has ",$P("Active^No^Terminated",U,RET+1)," Insurance"
+         Q
+         ;
+GETCLWLS ;
+         D INIT
+         K OUT D GETCLWLS^IBVPRPC(.OUT)
+         W ! ZW OUT
+         Q
+         ;
+GETCLS   ;
+         D INIT
+         S IEN11=1
+         K OUT D GETCLS^IBVPRPC(.OUT,IEN11)
+         W ! ZW OUT
+         Q
+         ;
+SVPREFS  ;
+         D INIT
+         K CL S CL(1)=671,CL(2)=672,CL(3)=673,CL(4)=674
+         K OUT D SVPREFS^IBVPRPC(.RET,"1","TEST",.CL,"D")
+         W ! ZW RET
+         Q
+         ;
+DELIVPIN ;
+         D INIT
+         D DELIVPIN^IBVPRPC(.RET,7172755,"04/18/2015@11:09AM",674,"4/09/2015@3:00PM",1,351,"DL")
+         W ! ZW RET
+         Q
+         ;
+SVMAKEAC ;Set up an IVP entry then change status to "AC"
+         D INIT S DTIME=30
+         S DIC="^DPT(",DIC(0)="QEAL" D ^DIC Q:Y=-1  S DFN=$P(Y,U)
+         S DIC="^DIC(36,",DIC(0)="QEAL" D ^DIC G:Y=-1 SVMAKEAC S INS=$P(Y,U,2)
+         S IVPDATA(1)="20.01^"_INS,IVPDATA(2)="90.03^12345678"
+         S APPTDATI=$$NOW^XLFDT,APPTDATI=$$FMTE^XLFDT(APPTDATI,"5PZ")
+         S USERROLE=4 ;Verifier  5=Intake
+         D SVIVP^IBVPRPC(.OUT,7172747,671,APPTDATI,USERROLE,.IVPDATA)
+         W ! ZW OUT
+         S N=$O(^IBA(377.15,"@"),-1)
+         S $P(^IBA(377.15,N,"IVP",1,"ACT",1,0),U,3)="AC"
+         ZW ^IBA(377.15,N)
+         Q
+         ;
+SVIVPA   ;
+         D INIT
+         K ARR S ARR(0)="SIGNA^SUBSCR1234",ARR(1)="BLUECROSS^SUBSCR6789"
+         S APPTDATI="02/24/2016 8:00 AM",USERROLE=6
+         K RET D SVIVPA^IBVPRPC1(.RET,7172754,671,APPTDATI,USERROLE,.ARR)
+         ZW RET
+         Q
+SVIVP    ;
+         D INIT
+         ;S IVPDATA(0)="20.01^CIGNA",IVPDATA(1)="90.01^AUTO WORKERS" ;This will send 270
+         S IVPDATA(0)="20.01^IVPTEST"
+         S APPTDATI="02/24/2016 8:00 AM",USERROLE=6
+         D SVIVP^IBVPRPC(.OUT,7172754,671,APPTDATI,USERROLE,.IVPDATA)
+         W ! ZW OUT
+         Q
+         ;
+SVNOREF  ;
+         D INIT
+         S APPTDATI="02/24/2016 9:30 AM",USERROLE=2
+         D SVNOREF^IBVPRPC(.OUT,4786,821,APPTDATI,USERROLE,1) ;1=NO INS 2=PAT REFUSED
+         W ! ZW OUT
+         Q
+         ;
+UPDIVP   ;
+         N APPTDATI,IVPDATA,USERROLE
+         D INIT
+         S IVPDATA(1)="enteredBy^"_DUZ,IVPDATA(2)="insuranceCompanyName^BCBS",IVPDATA(3)="subscriberId^SUBSCR999"
+         S APPTDATI="11/11/2015@15:00",USERROLE=4
+         D UPDIVP^IBVPRPC(.OUT,355,"11/10/2015@11:03",7172775,672,APPTDATI,USERROLE,.IVPDATA)
+         W ! ZW OUT
+         Q
+         ;
+GETIVPHD ;
+         D INIT
+         D GETIVPHD^IBVPRPC1(.RET,"MALC TEST",350)
+         ZW RET
+         Q
+         ;
+CRTGRPPL ;
+         N FLDARR,RET
+         D INIT
+         S FLDARR(1)=".04^GRPNUM1234"
+         D CRTGRPPL^IBVPRPC(.RET,461,.FLDARR)
+         W ! ZW RET
+         Q
+         ;
+GETIVPFL ;
+         N FILTER,RET
+         D INIT K FILTER
+         ;S FILTERS(1)="CREATEDFROMTO^01/01/2014^12/27/2014"
+         ;S FILTERS(1)="PATIENT NAME^ZZTESTPATIENT,TESTA"
+         ;S FILTERS(1)="PATIENT NAME RANGE^ZZTEST,TESTB^ZZTEST,ZZZ"
+         ;S FILTERS(1)="INSURANCE COMPANY NAME^BCBS"
+         ;S FILTERS(1)="INSURANCE COMPANY NAME RANGE^A^BCBS"
+         ;S FILTERS(1)="DIVISION NAME^BRON"
+         ;S FILTERS(1)="DIVISION NAME RANGE^A^B"
+         ;S FILTERS(1)="CREATED BY^ZZ,MALY"
+         ;S FILTERS(1)="CREATED BY RANGE^ZZ,MALC^ZZ,MALCA"
+         S FILTERS(1)="Source of Information^IVP"
+         D GETIVPFL^IBVPRPC(.RET,"SESSIONID",.FILTERS)
+         W ! ZW @RET
+         Q
+         ;
+GETIVPLS ;
+         D INIT
+         K RET D GETIVPLS^IBVPRPC(.RET,7172754) ZW RET
+         Q
+         ;
+UPDUSRCL ;
+         D INIT
+         S DUZ=123457236	
+         D UPDUSRCL^IBVPRPC(.ARRAY,33)
+         W ! ZW ARRAY
+         Q
+         ;
+PTLOOKUP ;
+         D INIT
+         D PTLOOKUP^IBVPRPC(.ARRAY,"IVPTESTBBB")
+         W ! ZW ARRAY
+         Q
+         ;
+GETINSLS ;
+         D INIT
+         K RET D GETINSLS^IBVPRPC(.RET,"BC") ZW @RET
+         Q
+         ;
+GETINSDT ;
+         D INIT
+         K RET D GETINSDT^IBVPRPC(.RET,486,".01;.02") ZW RET
+         Q
+         ;
+GETPTINF ;
+         D INIT
+         S DFN=7172748
+         K OUT D GETPTINF^IBVPRPC(.OUT,DFN)
+         W !,OUT,!
+         Q
+         ;
+GETPTINS ;
+         D INIT
+         S DFN=7172747
+         K OUT D GETPTINS^IBVPRPC(.OUT,DFN)
+         W ! ZW OUT
+         Q
+         ;
+TESTREPU ;
+         D INIT
+         S DIK="^IBA(377.13,",DA=1 D ^DIK
+         S REPORTID="INSINTAKEPROD",DATECR="3150701",DATEPUR="3160701",RET=0,F=0
+         F ROW=1:1:10 S TEXT="",PRE="LINE "_ROW Q:RET'=0  F J=1:1:2 S TEXT=TEXT_PRE_" COL "_J_U D:J=2
+         . ;UPDATE(RET,REPORTID,DATECR,DATEPUR,ROWNUM,TEXTLINE
+         . D UPDATREP^IBVPRPC(.RET,REPORTID,DATECR,DATEPUR,ROW,TEXT)
+         . I RET'=0 W !,$P(RET,U,2) Q
+         W ! ZW RET
+         Q
+         ;
+JSONREP  ;Test JSON output of a report
+         S U="^"
+         D REPORT^IBVPDAS(.RET,"A","INSINTAKEPROD",3150701)
+         W ! ZW RET
+         Q
+         ;
+TESTPUR  ;
+         D INIT
+         M ^IBA(377.13)=^IBACOP(377.13)
+         K OUT D PURGEREP^IBVPRPC(.OUT)
+         W !,OUT," RECORDS PURGED"
+         Q
+         ;
+TEST2HL7 ;
+         D INIT
+         S RPC="ZZIVPHL7",RPCVER="1",LOC="500"
+         D ZZIVPHL7(.STR)
+         K RET
+         D EN1^XWB2HL7(.RET,LOC,RPC,RPCVER,.STR)  ;;see ^ZZMKN(1) and (2) in DEVVII:
+         ;                                          ^ZZMKN(1)="Test message 1"
+         ;                                          ^ZZMKN(2)="Test message 2"
+         W ! ZW RET
+         Q
+         ;
+ZZIVPHL7(OUT) ;
+         S OUT(1)="Test message 3"
+         S OUT(2)="Test message 4"
+         Q
+         ;
+SVOSD    ;
+         D INIT
+         S FLD(0)="ppnvDaysOverall^180",FLD(1)="ppnvDaysLowest^90"
+         S FLD(2)="ppnvDaysHighest^365",FLD(3)="insCompanyNameRequired^Y"
+         D SVOSD^IBVPRPC(.RET,.FLD)
+         W !,RET,!
+         Q
+         ;
+INIT     ;
+         K DUZ
+         S DT=$P($$NOW^XLFDT(),".")
+         S DUZ=27843
+         S DUZ(0)="@"
+         S DUZ(1)=""
+         S DUZ(2)=500
+         ;S DUZ(2)=442
+         S DUZ("AG")="V"
+         S DUZ("BUF")=1
+         S DUZ("LANG")=1
+         S IO="|TRM|:|"_$J
+         S IO(0)="|TRM|:|"_$J
+         S IO(1,"|TRM|:|"_$j)=""
+         S IO("ERROR")=""
+         S IO("HOME")="48^|TRM|:|"_$J
+         S IO("ZIO")="TRM:"
+         S IOINORM=$C(27,91,109),IOINHI=$C(27,91,49,109)
+         S U="^"
+         S IOM=80
+         S U="^"
+         Q
+UP(X)    ;
+         Q $TR(X,"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+         ;
+SAVEIMG(RET,PATH,FLDARR) ;
+         ;
+         ;This API is called by RPC "IBVP SAVE IMAGE" to save an image in Cache Objects
+         ;
+         ;Input Parameters: 
+         ; PATH: The Full Folder Path to the image file including the name of the file
+         ; FLDARR: An array of fields and data to populate other properties in the Cache class
+         ;
+         ;Output: RET = Cache ID of Image if successful or "-1^Reason for failure" if unsuccessful
+         ;
+         N DFN,I,ID,N,OBJ,X
+         S N=0,DFN="",RET=-1 F  S N=$O(FLDARR(N)) Q:'N  I $P(FLDARR(N),U)="DFN" S DFN=$P(FLDARR(N),U,2)
+         I DFN="" S RET="-1^Patient IEN is missing" Q 
+         S OBJ=##class(IVP.ImageStore).%New()
+         D OBJ.ImageIn.LinkToFile(PATH)
+         F I=0:1 Q:OBJ.ImageIn.AtEnd>0  S X=OBJ.ImageIn.Read(1000) D OBJ.ImageOut.Write(X)
+         I 'I S RET="-1^Image FIle not found" Q
+         S N=0 F  S N=$O(FLDARR(N)) Q:'N  D
+         . I $P(FLDARR(N),U)="DFN" S OBJ.DFN=$P(FLDARR(N),U,2)
+         S X=OBJ.%Save()
+         D OBJ.%Close()
+         S ID=$O(^IVP.ImageStoreI("DFN",DFN,""),-1),RET=ID
+         Q
+         ;
+GETIMAGE(RET,RECID,PATHOUT) ;
+         ;
+         ;This API is called by RPC "IBVP GET IMAGE" to retrieve an image from Cache Objects
+         ;
+         ;Input Parameters: 
+         ; RECID=The ID of the Image in Cache Objects
+         ; PATHOUT=The Full Folder Path where the output image file will be saved
+         ; including the name of the file
+         ;
+         ;Output: RET = 0 if successful or "-1^Reason for failure" if unsuccessful
+         ;
+         N X
+         S OBJ=##class(IVP.ImageStore).%OpenId(ID)
+         D OBJ.ImageIn.LinkToFile(PATHOUT)
+         F  Q:OBJ.ImageOut.AtEnd>0  S X=OBJ.ImageOut.Read(1000) D OBJ.ImageIn.Write(X)
+         D OBJ.%Save()
+         D OBJ.%Close()
+         Q
+         ;
+SETSRCE  ;^IBE(355.12,"C","INSURANCE VERIFICATION PROC",12)=""
+         N ERR,FDA,IEN
+         S IEN=$O(^IBE(355.12,"C","INSURANCE VERIFICATION PROC","")) Q:IEN
+         S FDA(355.12,"+1,",.01)=12,FDA(355.12,"+1,",.02)="INSURANCE VERIFICATION PROC"
+         S FDA(355.12,"+1,",.03)="IVP"
+         D UPDATE^DIE("","FDA",,"ERR")
+         Q
+         ;
+SETJSON  ;This API will read the text file CPAC_AND_VISN_NUMBERS.TXT, extract CPAC and VISN numbers
+         ;       and construct JSON packets to go to VLER DAS
+         ;       Also, it builds the CPAC VISN AND VAMC file (#378.2)
+         ;
+         N C,DA,DIK,FN,I,JSON,N,POP,REC
+         S FN="CPAC_AND_VISN_NUMBERS.CSV",C=$C(34)
+         ;Kill contents of file #378.2
+         S N=0 F  S N=$O(^IBE(378.2,N)) Q:'N  S DA=N,DIK="^IBE(378.2," D ^DIK
+         D OPEN^%ZISH("CPAC","VA4$:[ANONYMOUS.ANONYMOUS]",FN,"R") I POP U 0 W !,"Unable to open file ",FN Q
+         U IO R REC:1 Q:$$STATUS^%ZISH
+         F I=1:1 U IO R REC:1 Q:$$STATUS^%ZISH()!($P(REC,",")="")  D
+         . ;NECPAC,734,01,402
+         . S JSON="{CPACNAME: "_C_$P(REC,",")_C_", CPAC: "_C_$P(REC,",",2)_C_", VISN: "_C_$P(REC,",",3)_C
+         . S JSON=JSON_", VAMC: "_C_$P(REC,",",4)_C_"}"
+         . U 0 W !,JSON
+         . K ERR,FDA S FDA(378.2,"+1,",.01)=$P(REC,",",2),FDA(378.2,"+1,",.02)=$P(REC,",")
+         . S FDA(378.2,"+1,",.03)=$P(REC,",",3),FDA(378.2,"+1,",.04)=$P(REC,",",4)
+         . D UPDATE^DIE("","FDA",,"ERR")
+         D CLOSE^%ZISH("CPAC")
+         Q
+         ;
+SETHIST  ;History file - set entries for all sequence SV, ESC,SV,ESC,SV,AC
+         D INIT
+         F DA=DT:1:(DT+4) D
+         . F RUN=1,2 S DFN=$P("7172747,7172750",",",RUN) D SETHIST2
+         Q
+SETHIST2 ;
+         K FDA,ERR,FDAO
+         S FDA(377.15,"+1,",.01)=DFN,FDA(377.15,"+1,",.02)=$S(RUN=1:DA_.0800,1:DA_.0830)
+         S FDA(377.15,"+1,",.03)=671,FDA(377.15,"+1,",.04)=12
+         S FDA(377.151,"+2,+1,",.01)=$S(RUN=1:600,1:601)
+         S:RUN=2 FDA(377.151,"+2,+1,",.03)=1 ;IMAGE SCANNED IF SECOND DFN
+         ;DAW
+         S FDA(377.1511,"+3,+2,+1,",.01)=DA_".1"
+         S FDA(377.1511,"+3,+2,+1,",.02)=123457236
+         S FDA(377.1511,"+3,+2,+1,",.03)=7 ;DAW=ON DAW
+         S FDA(377.1511,"+3,+2,+1,",.11)=0
+         ;EN
+         S FDA(377.1511,"+4,+2,+1,",.01)=DA_".101"
+         S FDA(377.1511,"+4,+2,+1,",.02)=123457236
+         S FDA(377.1511,"+4,+2,+1,",.03)=1 ;EN=ENTERED
+         S FDA(377.1511,"+4,+2,+1,",.05)="BCBS"
+         S FDA(377.1511,"+4,+2,+1,",.06)="BCBS GOLD"
+         S FDA(377.1511,"+4,+2,+1,",.07)="ABC123RD54"
+         S FDA(377.1511,"+4,+2,+1,",.08)="$"
+         S FDA(377.1511,"+4,+2,+1,",.09)=123457236
+         S FDA(377.1511,"+4,+2,+1,",.1)=123457236
+         S FDA(377.1511,"+4,+2,+1,",.11)=5
+         S FDA(377.1511,"+4,+2,+1,",.13)=500
+         S FDA(377.1511,"+4,+2,+1,",.14)=500
+         G:RUN=2 SETHIST5
+         ;SV
+         S FDA(377.1511,"+5,+2,+1,",.01)=DA_".11"
+         S FDA(377.1511,"+5,+2,+1,",.02)=123457236
+         S FDA(377.1511,"+5,+2,+1,",.03)=11 ;SV=SAVED
+         S FDA(377.1511,"+5,+2,+1,",.05)="BCBS"
+         S FDA(377.1511,"+5,+2,+1,",.06)="BCBS GOLD"
+         S FDA(377.1511,"+5,+2,+1,",.07)="ABC123RD54"
+         S FDA(377.1511,"+5,+2,+1,",.08)="$"
+         S FDA(377.1511,"+5,+2,+1,",.09)=123457236
+         S FDA(377.1511,"+5,+2,+1,",.1)=123457236
+         S FDA(377.1511,"+5,+2,+1,",.11)=4 
+         S FDA(377.1511,"+5,+2,+1,",.13)=500
+         S FDA(377.1511,"+5,+2,+1,",.14)=500
+         ;ES
+         S FDA(377.1511,"+6,+2,+1,",.01)=DA_".1101"
+         S FDA(377.1511,"+6,+2,+1,",.02)=123457236
+         S FDA(377.1511,"+6,+2,+1,",.03)=4 ;ES=ESCALATED
+         S FDA(377.1511,"+6,+2,+1,",.05)="BCBS"
+         S FDA(377.1511,"+6,+2,+1,",.06)="BCBS GOLD"
+         S FDA(377.1511,"+6,+2,+1,",.07)="ABC123RD54"
+         S FDA(377.1511,"+6,+2,+1,",.08)="$"
+         S FDA(377.1511,"+6,+2,+1,",.09)=123457236
+         S FDA(377.1511,"+6,+2,+1,",.1)=123457236
+         S FDA(377.1511,"+6,+2,+1,",.11)=4
+         S FDA(377.1511,"+6,+2,+1,",.13)=500
+         S FDA(377.1511,"+6,+2,+1,",.14)=500
+         ;G SETHIST6
+         ;
+SETHIST5 ;
+         S FDA(377.1511,"+10,+2,+1,",.01)=DA_".1401"
+         S FDA(377.1511,"+10,+2,+1,",.02)=123457236
+         S FDA(377.1511,"+10,+2,+1,",.03)=$S(RUN=2:3,1:2) ;2=AC=ACCEPTED 3=RJ=REJECTED
+         S FDA(377.1511,"+10,+2,+1,",.05)="BCBS"
+         S FDA(377.1511,"+10,+2,+1,",.06)="BCBS GOLD"
+         S FDA(377.1511,"+10,+2,+1,",.07)="ABC123RD54"
+         S FDA(377.1511,"+10,+2,+1,",.08)="$"
+         S FDA(377.1511,"+10,+2,+1,",.09)=123457236
+         S FDA(377.1511,"+10,+2,+1,",.1)=123457236
+         S FDA(377.1511,"+10,+2,+1,",.11)=4
+         S FDA(377.1511,"+10,+2,+1,",.13)=500
+         S FDA(377.1511,"+10,+2,+1,",.14)=500
+         ;
+SETHIST6 ;
+         K FDAO D UPDATE^DIE("S","FDA","FDAO","ERR")
+         I $D(ERR) W ! ZW FDA W ! ZW ERR
+         I '$D(ERR) W !! ZW FDAO
+         Q
+         ;
+SETHIST7 ;NO INS and REFUSED
+         D INIT
+         F DA=DT:1:(DT+4) D  ;CHECK DATES!!!!
+         . F RUN=1,2 S DFN=$P("7172751,7172754",",",RUN) D SETHIST9
+         Q
+SETHIST9 ;
+         K FDA,ERR,FDAO
+         S FDA(377.15,"+1,",.01)=DFN,FDA(377.15,"+1,",.02)=$S(RUN=1:DA_.0900,1:DA_.0930)
+         S FDA(377.15,"+1,",.03)=671,FDA(377.15,"+1,",.04)=12
+         S FDA(377.151,"+2,+1,",.01)=$S(RUN=1:600,1:601)
+         S:RUN=2 FDA(377.151,"+2,+1,",.03)=1 ;IMAGE SCANNED IF SECOND DFN
+         ;DAW
+         S FDA(377.1511,"+3,+2,+1,",.01)=DA_".1"
+         S FDA(377.1511,"+3,+2,+1,",.02)=123457236
+         S FDA(377.1511,"+3,+2,+1,",.03)=7 ;DAW=ON DAW
+         S FDA(377.1511,"+3,+2,+1,",.11)=0
+         ;NI or RF
+         S FDA(377.1511,"+4,+2,+1,",.01)=DA_".101"
+         S FDA(377.1511,"+4,+2,+1,",.02)=123457236
+         S FDA(377.1511,"+4,+2,+1,",.03)=$S(RUN=1:5,1:6) ;NI or RF
+         S FDA(377.1511,"+4,+2,+1,",.05)=$S(RUN=1:"NO INSURANCE",1:"REFUSED")
+         S FDA(377.1511,"+4,+2,+1,",.11)=5
+         K FDAO D UPDATE^DIE("S","FDA","FDAO","ERR")
+         I $D(ERR) W ! ZW FDA W ! ZW ERR
+         I '$D(ERR) W !! ZW FDAO
+         Q
+         ; 
+CNVTACT  ;Convert Activity Code in file #377.15 to a pointer to file #377.3
+         S U="^",EXIT=0
+         S N=0 F  S N=$O(^IBA(377.15,N)) Q:'N  S N1=0 D
+         . F  S N1=$O(^IBA(377.15,N,"IVP",N1)) Q:'N1  D
+         . . S ACT=0 F  S ACT=$O(^IBA(377.15,N,"IVP",N1,"ACT",ACT)) Q:'ACT!(EXIT)  S X=^(ACT,0),ACTTYPE=$P(X,U,3) D:ACTTYPE'?1.N
+         . . . S P=$O(^IBA(377.3,"B",ACTTYPE,""))
+         . . . I P="" W !,N," ",N1," ",ACT," ",ACTTYPE,"PROBLEM" S EXIT=1 Q
+         . . . I P?1.N S $P(X,U,3)=P,^IBA(377.15,N,"IVP",N1,"ACT",ACT,0)=X
+         Q
+         ;
+GETPRMS  ;
+         D INIT
+         D GET^IBVPPRMS(.RET)
+         ZW RET
+         Q
+         ;
+GETPPNV  ;
+         D INIT
+         K RET D GETPPNV^IBVPRPC1(.RET) ZW RET
+         Q
+         ;
+GETPPNVS ;
+         D INIT
+         S INSNA="TR",GRPNA="",GRPNUM="3243322"
+         D GETPPNVS^IBVPRPC1(.RET,"SESSIONID",INSNA,GRPNA,GRPNUM)
+         S N="" F  S N=$O(@RET@(N)) Q:N=""  W !,"RET("_N_")="_@RET@(N)
+         Q
+         ;
+GETGRPPN ;
+         D INIT
+         S GRPNA="",GRPNUM="3243322"
+         D GRPPPNVS^IBVPRPC1(.RET,"SESSIONID",464,GRPNA,GRPNUM)
+         S N="" F  S N=$O(@RET@(N)) Q:N=""  W !,"RET("_N_")="_@RET@(N)
+         Q
+         ;
+SETPPNVS ;
+         D INIT
+         S FLDARR(0)="INS^486^50"
+         S FLDARR(1)="GRP^461^90"
+         K RET D SETPPNVS^IBVPRPC1(.RET,"SESSIONID",.FLDARR) ZW RET
+         Q
+         ;
+UPDINSUR ;
+         D INIT
+         S FLDARR(0)=".114^ATLANTA"
+         K RET D UPDINSUR^IBVPINCO(.RET,487,.FLDARR) ZW RET
+         Q
+FNDGRPNM ;
+         D INIT
+         S SEARCH="GRPNUM1234"
+         D FNDGRPNM^IBVPRPC(.RET,SEARCH)
+         ZW @RET
+         Q
+PUSHCPAC ;
+         D INIT
+         ;S CT=0,N=0 F  S N=$O(^IBE(378.5,N)) Q:'N  S X=^(N,0),ARR(CT)="insuranceCompanyName;"_$P(X,U)_U_"priority;"_$S($P(X,U,3)="":"N",1:$P(X,U,3)),CT=CT+1
+         ;ZW ARR
+         K FLDARR S FLDARR(0)="insuranceCompanyName;IVP TEST^priority;N"
+         S FLDARR(1)="insuranceCompanyName;UMR^priority;Y"
+         D PUSHCPAC^IBVPRPC1(.RET,"SESSIONID",.FLDARR)
+         ZW RET
+         Q
+         ;
+PUSHSTOP ;
+         D INIT
+         K RET S FLDARR(0)="502^120^" D PUSHSTOP^IBVPRPC1(.RET,"SESSIONID",.FLDARR) ZW RET
+         Q
+PUSHOSD  ;
+         D INIT
+         K RET
+         S FLD(0)="ppnvDaysOverall^100",FLD(1)="ppnvDaysLowest^90"
+         S FLD(2)="ppnvDaysHighest^300"
+         D PUSHOSD^IBVPRPC1(.RET,"SESSIONID",.FLD) ZW RET
+         Q
+         ;
+PUSHIMG  ;
+         D INIT
+         K FLDARR S FLDARR(0)="imagePurgeDays^Y"
+         S FLDARR(1)="typeOfCoverageRequired^N"
+         K RET D PUSHOSD^IBVPRPC1(.RET,"SESSIONID",.FLDARR) ZW RET
+         Q
+         ;
+PUSHREQ  ;
+         D INIT
+         K FLDARR S FLDARR(0)="insCompanyNameRequired^Y"
+         S FLDARR(1)="typeOfCoverageRequired^N"
+         K RET D PUSHOSD^IBVPRPC1(.RET,"SESSIONID",.FLDARR) ZW RET
+         Q
+         ;
+PUSHREF  ;Push Intkae Refresh Rates
+         D INIT
+         K FLDARR S FLDARR(0)="intakeRefreshParameterLow^10"
+         S FLDARR(1)="intakeRefreshParameterHigh^100"
+         K RET D PUSHOSD^IBVPRPC1(.RET,"SESSIONID",.FLDARR) ZW RET
+         Q
+         ;
+UPSESS   ;
+         D INIT
+         D UPSESS^IBVPPREF(.RET,"ABC123!def")
+         ZW RET
+         Q
+]]></Routine>
+</Export>
