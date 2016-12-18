@@ -5,7 +5,7 @@ ZZMKN    ;Malcolm Needham - Snippets
          ;;2.0;INTEGRATED BILLING;**527**;21-MAR-94;Build 1
          ;;Per VA Directive 6402, this routine should not be modified.
          ;
-CLONEINS ;Clone an Insurance Company . . . testing 12/18/16 again
+CLONEINS ;Clone an Insurance Company - testing 12/18/16 again
          D INIT
          K RET D CLONEINS^IBVPRPC1(.RET,"SESSIONID",486,351) ZW RET
          Q
