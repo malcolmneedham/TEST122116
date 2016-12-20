@@ -2,7 +2,7 @@
 <Export generator="Cache" version="25">
 <Routine name="ZZMKNGIT" type="INT" languagemode="0"><![CDATA[
 ZZMKNGIT ;TEST GIT
- ;test
+ ;test again
  Q
 ]]></Routine>
 </Export>
